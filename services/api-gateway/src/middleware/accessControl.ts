@@ -4,7 +4,9 @@ import { db } from '../services/database';
 import crypto from 'crypto';
 
 const ALLOWED_CIDR_BLOCKS = process.env.ALLOWED_CIDR_BLOCKS?.split(',') || ['0.0.0.0/0'];
-const DEVICE_VALIDATION_DAYS = 365;
+const DEVICE_VALIDATION_DAYS = Number.isInteger(parseInt(process.env.DEVICE_VALIDATION_DAYS || '')) && parseInt(process.env.DEVICE_VALIDATION_DAYS || '') > 0
+  ? parseInt(process.env.DEVICE_VALIDATION_DAYS as string, 10)
+  : 365;
 
 // Generate a consistent device identifier from browser fingerprint
 function generateDeviceIdentifier(req: Request): string {

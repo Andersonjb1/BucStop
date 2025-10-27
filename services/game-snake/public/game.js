@@ -239,8 +239,8 @@ function endGame() {
     gameScreen.classList.remove('active');
     gameOverScreen.classList.add('active');
     
-    // For now, just show form for all scores
-    // In production, this would check if score is in top 10
+    // Show form for any score > 0
+    // The backend will determine if it makes the top 10
     if (score > 0) {
         topTenForm.style.display = 'block';
         initialsInput.value = '';
@@ -272,17 +272,27 @@ function handleScoreSubmit() {
     submitScoreBtn.disabled = true;
     submitScoreBtn.textContent = 'Submitted!';
     
-    // Listen for response
-    window.addEventListener('message', (event) => {
+    // Listen for response from parent window with origin validation
+    const messageHandler = (event) => {
+        // Validate origin - only accept messages from parent (BucStop platform)
+        // In a sandboxed iframe, we expect messages from the parent origin
+        if (event.source !== window.parent) {
+            return;
+        }
+        
         if (event.data.type === 'SCORE_SUBMITTED') {
             console.log('Score submitted successfully:', event.data.result);
+            window.removeEventListener('message', messageHandler);
         } else if (event.data.type === 'SCORE_ERROR') {
             console.error('Score submission error:', event.data.error);
             submitScoreBtn.disabled = false;
             submitScoreBtn.textContent = 'Submit Score';
             alert('Failed to submit score. Please try again.');
+            window.removeEventListener('message', messageHandler);
         }
-    });
+    };
+    
+    window.addEventListener('message', messageHandler);
 }
 
 // Start the game when page loads

@@ -13,6 +13,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - bucstop-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U bucstop_user -d bucstop"]
       interval: 10s
@@ -33,8 +35,9 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://bucstop_user:bucstop_password@database:5432/bucstop
       ALLOWED_CIDR_BLOCKS: "0.0.0.0/0"
-    links:
-      - database
+      DEVICE_VALIDATION_DAYS: "365"
+    networks:
+      - bucstop-network
     depends_on:
       database:
         condition: service_healthy
@@ -55,6 +58,8 @@ services:
       - "5173:5173"
     environment:
       VITE_API_URL: http://localhost:3000
+    networks:
+      - bucstop-network
     depends_on:
       - api-gateway
     healthcheck:
@@ -77,11 +82,17 @@ services:
       PORT: 3001
       GAME_NAME: snake
       GAME_VERSION: 1.0.0
+    networks:
+      - bucstop-network
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+networks:
+  bucstop-network:
+    driver: bridge
 
 volumes:
   postgres_data:

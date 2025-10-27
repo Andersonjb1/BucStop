@@ -23,11 +23,24 @@ function GamePlayPage() {
     return () => {
       window.removeEventListener('message', handleGameMessage);
       // Track game end when leaving the page
-      if (playId) {
-        api.endGamePlay(gameName!, playId, false);
+      // Use navigator.sendBeacon for reliable fire-and-forget analytics on unload
+      if (playId && gameName) {
+        const url = `/api/games/${encodeURIComponent(gameName)}/play/end`;
+        const payload = JSON.stringify({
+          playId,
+          completed: false
+        });
+        
+        // Try sendBeacon first, fall back to fetch if not available
+        if (navigator.sendBeacon) {
+          const blob = new Blob([payload], { type: 'application/json' });
+          navigator.sendBeacon(url, blob);
+        } else {
+          api.endGamePlay(gameName, playId, false);
+        }
       }
     };
-  }, [gameName]);
+  }, [gameName, playId]);
 
   const loadGame = async () => {
     try {
@@ -46,6 +59,12 @@ function GamePlayPage() {
   };
 
   const handleGameMessage = async (event: MessageEvent) => {
+    // Validate origin for security - only accept messages from game service
+    if (!game || !event.origin.includes(new URL(game.service_url).hostname)) {
+      console.warn('Rejected message from unauthorized origin:', event.origin);
+      return;
+    }
+    
     // Handle score submission messages from the game iframe
     if (event.data.type === 'SUBMIT_SCORE') {
       const { initials, score } = event.data;
@@ -56,11 +75,12 @@ function GamePlayPage() {
           await api.endGamePlay(gameName!, playId, true, score);
         }
         
-        // Notify game of successful submission
+        // Notify game of successful submission with specific origin
+        const targetOrigin = new URL(game.service_url).origin;
         iframeRef.current?.contentWindow?.postMessage({
           type: 'SCORE_SUBMITTED',
           result
-        }, '*');
+        }, targetOrigin);
         
         // Show result to user
         if (result.isTopTen) {
@@ -68,10 +88,11 @@ function GamePlayPage() {
         }
       } catch (err) {
         console.error('Error submitting score:', err);
+        const targetOrigin = new URL(game.service_url).origin;
         iframeRef.current?.contentWindow?.postMessage({
           type: 'SCORE_ERROR',
           error: 'Failed to submit score'
-        }, '*');
+        }, targetOrigin);
       }
     }
   };
@@ -106,7 +127,7 @@ function GamePlayPage() {
           src={`${game.service_url}/play`}
           className="game-frame"
           title={game.display_name}
-          sandbox="allow-scripts allow-same-origin"
+          sandbox="allow-scripts"
         />
       </div>
     </div>

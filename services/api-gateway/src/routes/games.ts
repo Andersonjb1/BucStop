@@ -81,7 +81,7 @@ router.post('/:gameName/score', async (req: Request, res: Response) => {
     }
     
     if (typeof score !== 'number' || score < 0) {
-      return res.status(400).json({ error: 'Score must be a positive number' });
+      return res.status(400).json({ error: 'Score must be a non-negative number' });
     }
     
     // Get game ID
@@ -130,6 +130,8 @@ router.post('/:gameName/score', async (req: Request, res: Response) => {
 router.post('/:gameName/play/start', async (req: Request, res: Response) => {
   try {
     const { gameName } = req.params;
+    // playerIdentifier is optional - can be used to track unique players across sessions
+    // If not provided (null), player is tracked only by IP address
     const playerIdentifier = req.body.playerIdentifier || null;
     const clientIp = req.ip || req.socket.remoteAddress;
     
