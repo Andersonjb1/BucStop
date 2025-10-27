@@ -1,0 +1,123 @@
+.game-detail {
+  background-color: var(--white);
+  border-radius: 8px;
+  padding: 30px;
+  margin-top: 20px;
+  box-shadow: var(--shadow);
+}
+
+.game-detail-header {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 30px;
+  padding-bottom: 30px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.game-detail-image {
+  width: 300px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.game-detail-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-detail-info h2 {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+  margin-bottom: 10px;
+}
+
+.game-authors {
+  color: var(--text-light);
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+}
+
+.game-meta {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.badge {
+  padding: 6px 16px;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border-radius: 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.play-button {
+  padding: 15px 40px;
+  background-color: var(--success-color);
+  color: var(--white);
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.play-button:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+.game-detail-content {
+  margin-bottom: 30px;
+}
+
+.game-description,
+.game-instructions,
+.game-notes {
+  margin-bottom: 25px;
+}
+
+.game-description h3,
+.game-instructions h3,
+.game-notes h3 {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  margin-bottom: 10px;
+}
+
+.game-description p,
+.game-instructions p,
+.game-notes p {
+  color: var(--text-color);
+  line-height: 1.8;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .game-detail {
+    padding: 20px;
+  }
+
+  .game-detail-header {
+    flex-direction: column;
+  }
+
+  .game-detail-image {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+  }
+
+  .game-detail-info h2 {
+    font-size: 2rem;
+  }
+
+  .play-button {
+    width: 100%;
+    text-align: center;
+  }
+}

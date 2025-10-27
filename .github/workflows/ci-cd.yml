@@ -1,0 +1,127 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint API Gateway
+        run: |
+          cd services/api-gateway
+          npm install
+          npm run lint || true
+
+      - name: Lint Web App
+        run: |
+          cd services/web-app
+          npm install
+          npm run lint || true
+
+      - name: Run tests
+        run: |
+          # Add test commands here when tests are implemented
+          echo "Tests will be added in future iterations"
+
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API Gateway Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/api-gateway
+          file: ./services/api-gateway/Dockerfile
+          push: false
+          tags: bucstop-api-gateway:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Web App Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/web-app
+          file: ./services/web-app/Dockerfile
+          push: false
+          tags: bucstop-web-app:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Snake Game Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/game-snake
+          file: ./services/game-snake/Dockerfile
+          push: false
+          tags: bucstop-game-snake:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build-images
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start services with Docker Compose
+        run: |
+          docker-compose up -d
+          sleep 30
+
+      - name: Wait for services to be healthy
+        run: |
+          for i in {1..30}; do
+            if docker-compose ps | grep -q "healthy"; then
+              echo "Services are healthy"
+              break
+            fi
+            echo "Waiting for services to be healthy..."
+            sleep 10
+          done
+
+      - name: Test API Gateway
+        run: |
+          curl -f http://localhost:3000/health || exit 1
+          curl -f http://localhost:3000/api/games || exit 1
+
+      - name: Test Web App
+        run: |
+          curl -f http://localhost:5173 || exit 1
+
+      - name: Test Game Service
+        run: |
+          curl -f http://localhost:3001/health || exit 1
+          curl -f http://localhost:3001/play || exit 1
+
+      - name: Stop services
+        if: always()
+        run: docker-compose down -v
