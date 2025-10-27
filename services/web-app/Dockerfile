@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm config set strict-ssl false && npm install
 
 # Copy source code
 COPY . .

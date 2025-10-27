@@ -6,13 +6,16 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm config set strict-ssl false && npm install
 
 # Copy source code
 COPY . .
 
 # Build TypeScript
 RUN npm run build
+
+# Remove dev dependencies
+RUN npm prune --production
 
 # Expose port
 EXPOSE 3000

@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm config set strict-ssl false && npm install --production
 
 # Copy game files
 COPY . .

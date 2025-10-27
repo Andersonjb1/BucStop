@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   database:
@@ -35,6 +33,8 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://bucstop_user:bucstop_password@database:5432/bucstop
       ALLOWED_CIDR_BLOCKS: "0.0.0.0/0"
+    links:
+      - database
     depends_on:
       database:
         condition: service_healthy
